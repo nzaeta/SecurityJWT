@@ -60,8 +60,8 @@ Además hay que agregar manualmente las dependencias de JWT.
 
 ## 2 - Crear Clase Controlador AuthController
 
-En esta clase están los endpoints para autenticación. Estos métodos no estarán protegidos. <br>
-Llama a los métodos que estarán en la Clase Servicio Authservice.
+En esta clase están los endpoints para autenticación. Estos métodos no estarán protegidos. Ambos devolverán un JWT. <br>
+Llama a los métodos de la Clase Servicio Authservice.
   
 
 ```java
@@ -100,7 +100,7 @@ public class AuthController {
 - Esta clase contiene la SecurityFilterChain. Todas las requests que reciba nuestra API pasarán por esta cadena de filtros.<br>
 - Le indicamos que los endpoints en la ruta /auth/ (login y registro) serán públicos. <br>
 - Para acceder a los demás endpoints, el usuario deberá estar autenticado (   .anyRequest().authenticated() )<br>
-- Deshabilitamos csrf y session. Son métodos predeterminados de Spring Security que no usaremos, porque la autenticación la haremos con JWT (agregamos el jwtAuthenticationFilter, lo desarrollaremos luego).<br>
+- Deshabilitamos csrf y session. Son métodos predeterminados de Spring Security que no usaremos, porque la autenticación la haremos con JWT. Agregamos el jwtAuthenticationFilter (lo desarrollaremos luego).<br>
 - El authenticationProvider es el responsable de recibir una solicitud de autorización y decidir si es válida o no. Más adelante, en otra clase de configuración indicaremos cuál provider implementaremos.<br>
 - La anotación @EnableMethodSecurity(securedEnabled = true) nos permitirá incluir en los controladores la anotación @Secured para indicar el rol de los usuarios que tendrán acceso a los mismos.<br>
 
