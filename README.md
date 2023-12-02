@@ -3,7 +3,7 @@
 En este tutorial aprenderás:
 - Implementación de **Spring Security**
 - Login y Registro con **Json Web Token**
-- Autorizar el acceso a un endpoint a usuarios con un **rol** determinado
+- Autorizar el acceso a un endpoint a usuarios con un **ROL** determinado
 - Configuración de **CORS** para que el Front-end pueda acceder a tu proyecto
 
 <br>
@@ -207,7 +207,7 @@ public class AuthResponse {
 - UserDetails es un usuario de Spring Security. Debes implementarla en la entidad que será el usuario de tu app (User, Usuario, Persona, etc.).
 - UserDetails tiene como atributos **username** y **password**. Aquí sobreescribimos el método getUsername y le indicamos que usaremos el email como username.
 - En este caso no hizo falta sobreescribir el método getPassword porque ya tenemos un atributo password en la entidad User, y Lombok se está encargando de crear el getter por la anotación @Data. Si al campo le pusiste otro nombre (ej: contrasena) tu IDE te forzará a implementar el método getPassword, al cual habrá que pasarle el atributo contrasena.
-- Le agregamos como atributo el Rol. **Los roles estarán listados en una Clase Enumerador**.
+- Le agregamos como atributo el Rol. **Los roles estarán listados en una Clase Enumerador** (ver más abajo).
 - En el método getAuthorities le pasamos el rol, serán los permisos que tiene ese usuario.
 - A los métodos de expiración le ponemos todo true. No los usaremos, ya que eso se manejará con el JWT.
 
@@ -283,7 +283,7 @@ public interface UserRepository extends JpaRepository<User,Integer> {
 - Deshabilitamos csrf y session. Son métodos predeterminados de Spring Security que no usaremos, porque la autenticación la haremos con JWT.
 - Agregamos el **jwtAuthenticationFilter** (lo desarrollaremos luego).<br>
 - El authenticationProvider es el responsable de recibir una solicitud de autorización y decidir si es válida o no. Más adelante, en otra clase de configuración indicaremos cuál provider implementaremos.<br>
-- La anotación @EnableMethodSecurity(securedEnabled = true) nos permitirá incluir en los controladores la anotación **@Secured** para indicar el rol de los usuarios que tendrán acceso a los mismos.<br>
+- La anotación @EnableMethodSecurity(securedEnabled = true) nos permitirá incluir en los controladores la anotación **@Secured** para indicar el **ROL** de los usuarios que tendrán acceso a los mismos.<br>
 
 
 ```java
@@ -532,7 +532,7 @@ jwt.secret= 123456789654564564dsa65f4s56d4f65sdf56sd564f65sdf65sd6f54sd6f
 
 ## 10 - Crear Clase Servicio AuthService
 Finalmente podemos desarrollar aquí los métodos de login y registro invocados por el AuthController que hicimos en el paso #2
-- Registro: Recibe el DTO con los datos de reigstro, el cual incluye el email. Si ya existe un usuario en la Base de Datos con ese email, lanzará un mensaje de error. De lo contrario guardará el usuario en la BD y devolverá el JWT llamando al JWTService del paso anterior.
+- Registro: Recibe el DTO con los datos de registro, el cual incluye el email. Si ya existe un usuario en la Base de Datos con ese email, lanzará un mensaje de error. De lo contrario guardará el usuario en la BD y devolverá el JWT llamando al JWTService del paso anterior.
 - Login: Autentica al usuario con las credenciales que recibe dentro del LoginDto. Busca al usuario en la BD y genera el JWT.
 
 
@@ -583,7 +583,8 @@ public class AuthService {
 ```
 
 ## 11 - Asignar Roles de acceso a los endpoints
-Mediante la anotación @Secured("ROL") indicamos el rol que debe tener el usuario para poder acceder a cada endpoint. Si varios roles tienen permiso a ese endpoint se puede poner así: @Secured({"ADMIN", "ROL1", "ROL2"})
+Mediante la anotación @Secured("ROL") indicamos el rol que debe tener el usuario para poder acceder a cada endpoint. Recordemos que para que esta anotación funcione, pusimos esta otra anotación en SecurityConfig: @EnableMethodSecurity(securedEnabled = true).<br>
+Si varios roles tienen permiso a ese endpoint se puede poner así: @Secured({"ADMIN", "ROL1", "ROL2"})
 <br>
 Aquí tenemos unos endpoints de ejemplo:
 - probando: podrá ser accedido por cualquier usuario que esté logueado, independientemente de su rol, ya que no utilizamos la anotación @Secured.
