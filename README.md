@@ -126,7 +126,7 @@ Además hay que agregar manualmente las 3 dependencias de JWT.
 
 ## 2 - Crear Clase Controlador AuthController
 
-En esta clase están los endpoints para autenticación. Estos métodos no estarán protegidos (se podrá ingresar sin estar logueado). Ambos devolverán un JWT. <br>
+En esta clase están los endpoints para autenticación (Login y Registro). Estos métodos no estarán protegidos (se podrán acceder por un usuario no autenticado), esto lo indicaremos posteriormente en una clase de Configuración. Ambos devolverán un JWT. <br>
 Llama a los métodos de la Clase Servicio Authservice, los cuales desarrollaremos más adelante.
   
 
@@ -204,9 +204,9 @@ public class AuthResponse {
 ```
 
 ## 4 - Implementar UserDetails en tu Entidad Usuario
-- UserDetails es un usuario de Spring Security. Debes implementarla en la entidad que será el usuario de tu app (User, Usuario, Persona, etc.).
+- UserDetails es un usuario de Spring Security. Es una interfaz, y debes implementarla en la entidad que será el usuario de tu app (User, Usuario, Persona, etc.). Al hacerlo, tu IDE te pedirá sobreescribir sus métodos.
 - UserDetails tiene como atributos **username** y **password**. Aquí sobreescribimos el método getUsername y le indicamos que usaremos el email como username.
-- En este caso no hizo falta sobreescribir el método getPassword porque ya tenemos un atributo password en la entidad User, y Lombok se está encargando de crear el getter por la anotación @Data. Si al campo le pusiste otro nombre (ej: contrasena) tu IDE te forzará a implementar el método getPassword, al cual habrá que pasarle el atributo contrasena.
+- En este caso no hizo falta sobreescribir el método getPassword porque ya tenemos un atributo "password" en la entidad User, y Lombok se está encargando de crear el getter por la anotación @Data. Si al campo le pusiste otro nombre (ej: contrasena) tu IDE te forzará a implementar el método getPassword, al cual habrá que pasarle el atributo contrasena.
 - Le agregamos como atributo el Rol. **Los roles estarán listados en una Clase Enumerador** (ver más abajo).
 - En el método getAuthorities le pasamos el rol, serán los permisos que tiene ese usuario.
 - A los métodos de expiración le ponemos todo true. No los usaremos, ya que eso se manejará con el JWT.
@@ -266,7 +266,7 @@ public enum Role {
 ```
 
 ## 5 - Agregar query en Clase Repositorio
-En el repositorio de tu clase usuario agregamos un método para buscar por el atributo que habíamos decidido utilizar como username, en este caso el email.
+En el repositorio de tu clase usuario agregamos un método para buscar por el atributo que habíamos decidido utilizar como **username**, en este caso el **email**.
 
 ```java
 public interface UserRepository extends JpaRepository<User,Integer> {
@@ -278,7 +278,7 @@ public interface UserRepository extends JpaRepository<User,Integer> {
 ## 6 - Crear Clase de Configuración SecurityConfig
 
 - Esta clase contiene la **SecurityFilterChain**. Todas las requests que reciba nuestra API pasarán por esta cadena de filtros.<br>
-- Le indicamos que los endpoints en la ruta /auth/ (login y registro) serán públicos. <br>
+- Le indicamos que los endpoints en la ruta /auth/ (login y registro) serán públicos (son los de la clase AuthController, que hicimos en el punto 2#) . <br>
 - Para acceder a los demás endpoints, el usuario deberá estar autenticado (   .anyRequest().authenticated() )<br>
 - Deshabilitamos csrf y session. Son métodos predeterminados de Spring Security que no usaremos, porque la autenticación la haremos con JWT.
 - Agregamos el **jwtAuthenticationFilter** (lo desarrollaremos luego).<br>
@@ -392,7 +392,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 - **AuthenticationManager** es una interfaz de de Spring Security, responsable de manejar el proceso de autenticación de usuarios.
 - El proveedor de autenticación a implementar será **DaoAuthenticationProvider**, que valida las credenciales (usuario y contraseña) contra una Base de Datos. Otro proveedor utilizado comúnmente es OAuth2Login, que sirve para inciar sesión con Google, Facebook, etc.
 - Para encriptar las contraseñas utilizaremos el algoritmo **Bycrypt**.
-- **UserDetailsService** se encargará de buscar el usuario en la base de datos. Recordemos que habíamos definido que utilizaríamos como username el email.
+- **UserDetailsService** se encargará de buscar el usuario en la base de datos. Recordemos que habíamos definido que utilizaríamos como username el **email**.
 - **CORS** (Cross-Origin Resource Sharing) es un mecanismo de seguridad que tienen los navegadores web para restringir peticiones HTTP entre distintos servidores. Es necesario agregar esta configuración para que el Front pueda acceder a nuestra API. Completa la línea de .allowedOrigins(... ) con la URL que utilizará el front-end.
 
 
@@ -586,7 +586,7 @@ public class AuthService {
 Mediante la anotación @Secured("ROL") indicamos el rol que debe tener el usuario para poder acceder a cada endpoint. Recordemos que para que esta anotación funcione, pusimos esta otra anotación en SecurityConfig: @EnableMethodSecurity(securedEnabled = true).<br>
 Si varios roles tienen permiso a ese endpoint se puede poner así: @Secured({"ADMIN", "ROL1", "ROL2"})
 <br>
-Aquí tenemos unos endpoints de ejemplo:
+Aquí tenemos una clase controlador con unos endpoints de ejemplo:
 - probando: podrá ser accedido por cualquier usuario que esté logueado, independientemente de su rol, ya que no utilizamos la anotación @Secured.
 - endpointComprador: solo podrá ser accedido por un usuario con rol "COMPRADOR". Si el usuario tiene otro rol, devolverá un 403.
 - endpointVendedor: solo podrá ser accedido por un usuario con rol "VENDEDOR". Si el usuario tiene otro rol, devolverá un 403.
@@ -625,13 +625,13 @@ Los endpoints de Login y Registro devolverán un JWT.
 
 <br>
 
-Para acceder a los métodos protegidos, copiar y pegar el token en Authorization - Bearer Token. 
+Para acceder a los métodos protegidos, copiar y pegar el token en Authorization - Bearer Token. Sin ese token, cualquier petición a un endpoint protegido devolverá un 403.
 
 ![image](https://github.com/nzaeta/SecurityJWT/assets/106348660/2a9c450a-51fd-4cd3-91c0-e332b37e5d84)
 
 <br>
 
-Aquí te comparto la colección en [**Postman**](https://www.postman.com/nzaeta86/workspace/securityjwt/collection/29747805-a49a8517-1166-4756-984c-9508a2e50d55 "Ver colección en Postman"). Aquí no hace falta ir pegando el token en Authorization, está configurado para guardarlo en una variable {{token}} al hacer el Registro/Login.
+Te comparto la colección de requests en [**Postman**](https://www.postman.com/nzaeta86/workspace/securityjwt/collection/29747805-a49a8517-1166-4756-984c-9508a2e50d55 "Ver colección en Postman"). Aquí no hace falta ir pegando el token en Authorization, está configurado para guardarlo en una variable {{token}} al hacer el Registro/Login.
 
 
 <br>
